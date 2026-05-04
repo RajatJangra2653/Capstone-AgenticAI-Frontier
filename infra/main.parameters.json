@@ -1,0 +1,51 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "value": "${AZURE_ENV_NAME}"
+    },
+    "location": {
+      "value": "${AZURE_LOCATION}"
+    },
+    "FOUNDRY_ENDPOINT": {
+      "value": "${FOUNDRY_ENDPOINT}"
+    },
+    "PROJECT_NAME": {
+      "value": "${PROJECT_NAME}"
+    },
+    "AGENT_APP_ORCHESTRATOR": {
+      "value": "${AGENT_APP_ORCHESTRATOR}"
+    },
+    "AGENT_MODEL_ORCHESTRATOR": {
+      "value": "${AGENT_MODEL_ORCHESTRATOR}"
+    },
+    "AGENT_APP_HR": {
+      "value": "${AGENT_APP_HR}"
+    },
+    "AGENT_MODEL_HR": {
+      "value": "${AGENT_MODEL_HR}"
+    },
+    "AGENT_APP_IT": {
+      "value": "${AGENT_APP_IT}"
+    },
+    "AGENT_MODEL_IT": {
+      "value": "${AGENT_MODEL_IT}"
+    },
+    "AGENT_APP_FINANCE": {
+      "value": "${AGENT_APP_FINANCE}"
+    },
+    "AGENT_MODEL_FINANCE": {
+      "value": "${AGENT_MODEL_FINANCE}"
+    },
+    "AZURE_CLIENT_ID": {
+      "value": "${AZURE_CLIENT_ID}"
+    },
+    "AZURE_CLIENT_SECRET": {
+      "value": "${AZURE_CLIENT_SECRET}"
+    },
+    "AZURE_TENANT_ID": {
+      "value": "${AZURE_TENANT_ID}"
+    }
+  }
+}

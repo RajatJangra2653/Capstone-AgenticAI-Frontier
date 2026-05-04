@@ -1,0 +1,35 @@
+name: foundry-iq-agent
+metadata:
+  template: foundry-iq-agent-aca@0.0.1
+services:
+  web:
+    project: .
+    language: js
+    host: containerapp
+    docker:
+      remoteBuild: true
+
+hooks:
+  preprovision:
+    windows:
+      shell: pwsh
+      run: |
+        if (Test-Path .env) {
+          Write-Host "Loading variables from .env file..."
+          Get-Content .env | Where-Object { $_ -notmatch '^\s*#' -and $_ -match '=' } | ForEach-Object {
+            $name, $value = $_ -split '=', 2
+            azd env set $name.Trim() $value.Trim()
+          }
+        }
+    posix:
+      shell: sh
+      run: |
+        if [ -f .env ]; then
+          echo "Loading variables from .env file..."
+          while IFS='=' read -r name value || [ -n "$name" ]; do
+            # Skip comments and empty lines
+            if [[ $name != \#* ]] && [[ -n $name ]]; then
+              azd env set "$name" "$value"
+            fi
+          done < .env
+        fi
