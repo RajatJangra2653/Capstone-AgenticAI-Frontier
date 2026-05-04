@@ -10,7 +10,7 @@ services:
       remoteBuild: true
 
 hooks:
-  preprovision:
+  preup:
     windows:
       shell: pwsh
       run: |

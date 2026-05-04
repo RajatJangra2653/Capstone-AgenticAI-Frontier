@@ -1,7 +1,3 @@
-/* ═══════════════════════════════════════════════════════════════════
-   Foundry IQ — HR Agent · Client Application
-   ═══════════════════════════════════════════════════════════════════ */
-
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
