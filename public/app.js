@@ -97,6 +97,92 @@ function isTicketCreationIntent(text) {
          /\b(ticket|issue|request|incident)\b.*\b(create|raise|open|log|submit|file|new)\b/i.test(text);
 }
 
+// ── Ticket Tracking Intent Detection ──────────────────────────────
+function getTicketTrackingId(text) {
+  const match = text.match(/\b(IT-\d+)\b/i);
+  if (match && /\b(track|status|check|find|lookup|look up|fetch|get|show|where)\b/i.test(text)) {
+    return match[1].toUpperCase();
+  }
+  return null;
+}
+
+// ── Fetch and Display Ticket ──────────────────────────────────────
+async function trackTicket(ticketId) {
+  showTyping();
+  try {
+    const res = await fetch(`/api/tickets/${ticketId}`);
+    hideTyping();
+
+    if (!res.ok) {
+      appendMessage('agent', `**[Answered by: ITSupport-Agent]**\n\n❌ Ticket **${ticketId}** was not found. Please check the ID and try again.`);
+      return;
+    }
+
+    const ticket = await res.json();
+    const wrapper = document.createElement('div');
+    wrapper.className = 'message agent';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'msg-avatar';
+    avatar.style.background = 'linear-gradient(135deg,#8b5cf6,#c084fc)';
+    avatar.style.color = '#fff';
+    avatar.textContent = 'AI';
+
+    const body = document.createElement('div');
+    body.className = 'msg-body';
+
+    const content = document.createElement('div');
+    content.className = 'msg-content ticket-form-card';
+    content.innerHTML = `
+      <div class="ticket-form-header ticket-success">
+        <span class="ticket-form-icon">📋</span>
+        <strong>Ticket Details — ${ticket.id}</strong>
+      </div>
+      <div class="ticket-result">
+        <div class="ticket-result-row">
+          <span class="ticket-result-key">Ticket ID</span>
+          <span class="ticket-result-val ticket-id-badge">${ticket.id}</span>
+        </div>
+        <div class="ticket-result-row">
+          <span class="ticket-result-key">Title</span>
+          <span class="ticket-result-val">${escapeHtml(ticket.title)}</span>
+        </div>
+        <div class="ticket-result-row">
+          <span class="ticket-result-key">Raised By</span>
+          <span class="ticket-result-val">${escapeHtml(ticket.user)}</span>
+        </div>
+        <div class="ticket-result-row">
+          <span class="ticket-result-key">Category</span>
+          <span class="ticket-result-val">${ticket.category}</span>
+        </div>
+        <div class="ticket-result-row">
+          <span class="ticket-result-key">Priority</span>
+          <span class="ticket-result-val ticket-priority-${ticket.priority.toLowerCase()}">${ticket.priority}</span>
+        </div>
+        <div class="ticket-result-row">
+          <span class="ticket-result-key">Status</span>
+          <span class="ticket-result-val ticket-status-open">${ticket.status}</span>
+        </div>
+        <div class="ticket-result-row">
+          <span class="ticket-result-key">Created</span>
+          <span class="ticket-result-val">${new Date(ticket.createdAt).toLocaleString()}</span>
+        </div>
+      </div>
+      <p class="ticket-track-hint">${escapeHtml(ticket.description)}</p>
+    `;
+
+    body.appendChild(content);
+    wrapper.appendChild(avatar);
+    wrapper.appendChild(body);
+    chatMessages.appendChild(wrapper);
+    scrollToBottom();
+
+  } catch (err) {
+    hideTyping();
+    appendMessage('agent', `Network error while fetching ticket: ${err.message}`, [], true);
+  }
+}
+
 // ── Show Ticket Form in Chat ──────────────────────────────────────
 function showTicketForm() {
   const hero = $('#welcomeHero');
@@ -293,6 +379,13 @@ async function handleSubmit(e) {
   if (isTicketCreationIntent(text) && (agentId === 'ITSupport-Agent' || agentId === 'Orchestrator-Agent')) {
     appendMessage('agent', '**[Answered by: ITSupport-Agent]**\n\nSure! I can help you create a support ticket. Please fill out the form below with the required details.');
     showTicketForm();
+    return;
+  }
+
+  // Check if user wants to track a ticket
+  const trackId = getTicketTrackingId(text);
+  if (trackId) {
+    trackTicket(trackId);
     return;
   }
 

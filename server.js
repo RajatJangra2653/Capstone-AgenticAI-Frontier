@@ -13,9 +13,29 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(join(__dirname, 'public')));
 
-// ── In-Memory Database ─────────────────────────────────────────────────
-const tickets = [];
-let nextTicketId = 1000;
+// ── Persistent Ticket Storage (JSON file) ──────────────────────────────
+import { readFileSync, writeFileSync, existsSync } from 'fs';
+
+const TICKETS_FILE = join(__dirname, 'tickets.json');
+
+function loadTickets() {
+  if (existsSync(TICKETS_FILE)) {
+    try {
+      const data = JSON.parse(readFileSync(TICKETS_FILE, 'utf-8'));
+      return { tickets: data.tickets || [], nextId: data.nextId || 1000 };
+    } catch { /* corrupt file, start fresh */ }
+  }
+  return { tickets: [], nextId: 1000 };
+}
+
+function saveTickets() {
+  writeFileSync(TICKETS_FILE, JSON.stringify({ tickets, nextId: nextTicketId }, null, 2));
+}
+
+const ticketData = loadTickets();
+let tickets = ticketData.tickets;
+let nextTicketId = ticketData.nextId;
+console.log(`✓ Loaded ${tickets.length} existing ticket(s) from storage`);
 
 // ── Configuration ──────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
@@ -187,6 +207,7 @@ app.post('/api/tickets', (req, res) => {
   };
 
   tickets.push(newTicket);
+  saveTickets();
   console.log(`🎫 Ticket created: ${newTicket.id} — "${newTicket.title}" [${newTicket.priority}]`);
   return res.status(201).json(newTicket);
 });

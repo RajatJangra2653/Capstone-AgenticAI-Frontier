@@ -1,0 +1,15 @@
+{
+  "tickets": [
+    {
+      "id": "IT-1000",
+      "title": "Monitor flickering",
+      "description": "My second monitor flickers every few minutes",
+      "user": "Alice",
+      "priority": "Low",
+      "category": "Hardware",
+      "status": "Open",
+      "createdAt": "2026-05-05T09:50:15.232Z"
+    }
+  ],
+  "nextId": 1001
+}
