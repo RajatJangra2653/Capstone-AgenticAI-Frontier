@@ -13,6 +13,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(join(__dirname, 'public')));
 
+// ── In-Memory Database ─────────────────────────────────────────────────
+const tickets = [];
+let nextTicketId = 1000;
+
 // ── Configuration ──────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 const FOUNDRY_ENDPOINT = process.env.FOUNDRY_ENDPOINT ? process.env.FOUNDRY_ENDPOINT.replace(/\/$/, '') : undefined;
@@ -159,6 +163,49 @@ app.post('/api/chat', async (req, res) => {
     console.error('Chat proxy error:', err);
     return res.status(500).json({ error: err.message });
   }
+});
+
+// ── IT Support Ticket API ──────────────────────────────────────────────
+
+// Create a new ticket
+app.post('/api/tickets', (req, res) => {
+  const { title, description, user, priority, category } = req.body;
+  
+  if (!title || !description || !user || !priority) {
+    return res.status(400).json({ error: 'title, description, user, and priority are required' });
+  }
+
+  const newTicket = {
+    id: `IT-${nextTicketId++}`,
+    title,
+    description,
+    user,
+    priority: priority || 'Medium',
+    category: category || 'General',
+    status: 'Open',
+    createdAt: new Date().toISOString()
+  };
+
+  tickets.push(newTicket);
+  console.log(`🎫 Ticket created: ${newTicket.id} — "${newTicket.title}" [${newTicket.priority}]`);
+  return res.status(201).json(newTicket);
+});
+
+// Get all tickets
+app.get('/api/tickets', (req, res) => {
+  return res.json(tickets);
+});
+
+// Get ticket status by ID
+app.get('/api/tickets/:id', (req, res) => {
+  const ticketId = req.params.id;
+  const ticket = tickets.find(t => t.id === ticketId);
+  
+  if (!ticket) {
+    return res.status(404).json({ error: `Ticket ${ticketId} not found` });
+  }
+  
+  return res.json(ticket);
 });
 
 // ── Health check ───────────────────────────────────────────────────────

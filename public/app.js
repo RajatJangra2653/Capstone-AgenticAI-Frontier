@@ -48,13 +48,10 @@ function wireEvents() {
   chatForm.addEventListener('submit', handleSubmit);
 
   agentSelector.addEventListener('change', () => {
-    // When the agent is changed, clear the current conversation
     clearChat();
-    // Update the title to match the selected agent
     const selectedText = agentSelector.options[agentSelector.selectedIndex].text;
     $('.header-title h2').textContent = selectedText;
 
-    // Update the input placeholder
     if (agentSelector.value === 'ITSupport-Agent') {
       chatInput.placeholder = 'Ask the IT Support Agent a question…';
     } else if (agentSelector.value === 'Compliance-Agent') {
@@ -76,7 +73,6 @@ function wireEvents() {
   btnClear.addEventListener('click', clearChat);
   btnMenu.addEventListener('click', () => sidebar.classList.toggle('open'));
 
-  // Close sidebar on outside click (mobile)
   document.addEventListener('click', (e) => {
     if (sidebar.classList.contains('open') &&
         !sidebar.contains(e.target) &&
@@ -85,7 +81,6 @@ function wireEvents() {
     }
   });
 
-  // Quick prompts
   $$('.quick-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       chatInput.value = btn.dataset.prompt;
@@ -93,6 +88,186 @@ function wireEvents() {
       chatInput.focus();
       sidebar.classList.remove('open');
     });
+  });
+}
+
+// ── Ticket Creation Intent Detection ──────────────────────────────
+function isTicketCreationIntent(text) {
+  return /\b(create|raise|open|log|submit|file|new)\b.*\b(ticket|issue|request|incident)\b/i.test(text) ||
+         /\b(ticket|issue|request|incident)\b.*\b(create|raise|open|log|submit|file|new)\b/i.test(text);
+}
+
+// ── Show Ticket Form in Chat ──────────────────────────────────────
+function showTicketForm() {
+  const hero = $('#welcomeHero');
+  if (hero) hero.remove();
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'message agent';
+  wrapper.id = 'ticketFormWrapper';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  avatar.style.background = 'linear-gradient(135deg,#8b5cf6,#c084fc)';
+  avatar.style.color = '#fff';
+  avatar.textContent = 'AI';
+
+  const body = document.createElement('div');
+  body.className = 'msg-body';
+
+  const content = document.createElement('div');
+  content.className = 'msg-content ticket-form-card';
+  content.innerHTML = `
+    <div class="ticket-form-header">
+      <span class="ticket-form-icon">🎫</span>
+      <strong>Create IT Support Ticket</strong>
+    </div>
+    <p class="ticket-form-desc">Please fill in the details below to create a support ticket.</p>
+    <form id="ticketForm" class="ticket-form">
+      <div class="ticket-field">
+        <label for="ticketName">Your Name <span class="required">*</span></label>
+        <input type="text" id="ticketName" placeholder="e.g. John Doe" required />
+      </div>
+      <div class="ticket-field">
+        <label for="ticketTitle">Issue Title <span class="required">*</span></label>
+        <input type="text" id="ticketTitle" placeholder="e.g. Laptop not booting" required />
+      </div>
+      <div class="ticket-field">
+        <label for="ticketCategory">Category</label>
+        <select id="ticketCategory">
+          <option value="Hardware">🖥️ Hardware</option>
+          <option value="Software">💿 Software</option>
+          <option value="Network">🌐 Network / VPN</option>
+          <option value="Access">🔑 Access / Permissions</option>
+          <option value="Email">📧 Email</option>
+          <option value="Other">📋 Other</option>
+        </select>
+      </div>
+      <div class="ticket-field">
+        <label for="ticketPriority">Priority <span class="required">*</span></label>
+        <select id="ticketPriority" required>
+          <option value="Low">🟢 Low</option>
+          <option value="Medium" selected>🟡 Medium</option>
+          <option value="High">🟠 High</option>
+          <option value="Critical">🔴 Critical</option>
+        </select>
+      </div>
+      <div class="ticket-field">
+        <label for="ticketDescription">Description <span class="required">*</span></label>
+        <textarea id="ticketDescription" rows="3" placeholder="Describe the issue in detail…" required></textarea>
+      </div>
+      <div class="ticket-form-actions">
+        <button type="button" id="ticketCancel" class="ticket-btn ticket-btn-cancel">Cancel</button>
+        <button type="submit" class="ticket-btn ticket-btn-submit">🎫 Create Ticket</button>
+      </div>
+    </form>
+  `;
+
+  body.appendChild(content);
+  wrapper.appendChild(avatar);
+  wrapper.appendChild(body);
+  chatMessages.appendChild(wrapper);
+  scrollToBottom();
+
+  // Wire form events
+  const form = $('#ticketForm');
+  const cancelBtn = $('#ticketCancel');
+
+  cancelBtn.addEventListener('click', () => {
+    wrapper.remove();
+    appendMessage('agent', 'Ticket creation cancelled. Let me know if you need anything else!');
+    scrollToBottom();
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = $('#ticketName').value.trim();
+    const title = $('#ticketTitle').value.trim();
+    const category = $('#ticketCategory').value;
+    const priority = $('#ticketPriority').value;
+    const description = $('#ticketDescription').value.trim();
+
+    if (!name || !title || !priority || !description) return;
+
+    // Replace form with loading state
+    content.innerHTML = `
+      <div class="ticket-form-header">
+        <span class="ticket-form-icon">⏳</span>
+        <strong>Creating your ticket...</strong>
+      </div>
+    `;
+
+    try {
+      const res = await fetch('/api/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description, user: name, priority, category })
+      });
+
+      const ticket = await res.json();
+
+      if (!res.ok) {
+        content.innerHTML = `
+          <div class="ticket-form-header">
+            <span class="ticket-form-icon">❌</span>
+            <strong>Failed to create ticket</strong>
+          </div>
+          <p>${ticket.error || 'Something went wrong.'}</p>
+        `;
+        return;
+      }
+
+      // Show success card
+      content.innerHTML = `
+        <div class="ticket-form-header ticket-success">
+          <span class="ticket-form-icon">✅</span>
+          <strong>Ticket Created Successfully!</strong>
+        </div>
+        <div class="ticket-result">
+          <div class="ticket-result-row">
+            <span class="ticket-result-key">Ticket ID</span>
+            <span class="ticket-result-val ticket-id-badge">${ticket.id}</span>
+          </div>
+          <div class="ticket-result-row">
+            <span class="ticket-result-key">Title</span>
+            <span class="ticket-result-val">${escapeHtml(ticket.title)}</span>
+          </div>
+          <div class="ticket-result-row">
+            <span class="ticket-result-key">Raised By</span>
+            <span class="ticket-result-val">${escapeHtml(ticket.user)}</span>
+          </div>
+          <div class="ticket-result-row">
+            <span class="ticket-result-key">Category</span>
+            <span class="ticket-result-val">${ticket.category}</span>
+          </div>
+          <div class="ticket-result-row">
+            <span class="ticket-result-key">Priority</span>
+            <span class="ticket-result-val ticket-priority-${ticket.priority.toLowerCase()}">${ticket.priority}</span>
+          </div>
+          <div class="ticket-result-row">
+            <span class="ticket-result-key">Status</span>
+            <span class="ticket-result-val ticket-status-open">${ticket.status}</span>
+          </div>
+        </div>
+        <p class="ticket-track-hint">You can track this ticket using ID: <strong>${ticket.id}</strong></p>
+      `;
+
+      conversationHistory.push({
+        role: 'assistant',
+        content: `Ticket ${ticket.id} has been created successfully. Title: "${ticket.title}", Priority: ${ticket.priority}, Status: ${ticket.status}.`
+      });
+
+    } catch (err) {
+      content.innerHTML = `
+        <div class="ticket-form-header">
+          <span class="ticket-form-icon">❌</span>
+          <strong>Network error</strong>
+        </div>
+        <p>${err.message}</p>
+      `;
+    }
+
+    scrollToBottom();
   });
 }
 
@@ -111,11 +286,19 @@ async function handleSubmit(e) {
 
   chatInput.value = '';
   autoGrow(chatInput);
+
+  const agentId = agentSelector ? agentSelector.value : 'HR-Agent';
+
+  // Check if user wants to create a ticket (only for IT Support or Orchestrator)
+  if (isTicketCreationIntent(text) && (agentId === 'ITSupport-Agent' || agentId === 'Orchestrator-Agent')) {
+    appendMessage('agent', '**[Answered by: ITSupport-Agent]**\n\nSure! I can help you create a support ticket. Please fill out the form below with the required details.');
+    showTicketForm();
+    return;
+  }
+
   setProcessing(true);
   showTyping();
   scrollToBottom();
-
-  const agentId = agentSelector ? agentSelector.value : 'HR-Agent';
 
   try {
     const res = await fetch('/api/chat', {
@@ -231,13 +414,12 @@ function clearChat() {
   conversationHistory = [];
   chatMessages.innerHTML = '';
 
-  // Dynamic welcome based on selected agent
   let assistantName = 'HR Assistant';
   let assistantDesc = 'company HR policies, leave rules, health plans, onboarding, and more';
-  
+
   if (agentSelector && agentSelector.value === 'ITSupport-Agent') {
     assistantName = 'IT Support Agent';
-    assistantDesc = 'IT issues, software requests, hardware troubleshooting, and network access';
+    assistantDesc = 'IT issues, software requests, hardware troubleshooting, and ticket creation';
   } else if (agentSelector && agentSelector.value === 'Compliance-Agent') {
     assistantName = 'Compliance Agent';
     assistantDesc = 'company compliance, security audits, regulations, and risk management';
@@ -249,7 +431,6 @@ function clearChat() {
     assistantDesc = 'all your IT, Data Insights, and HR needs. I will route your question to the right expert automatically';
   }
 
-  // Recreate welcome
   const hero = document.createElement('div');
   hero.className = 'welcome-hero';
   hero.id = 'welcomeHero';
@@ -285,13 +466,9 @@ function autoGrow(el) {
 // ── Simple markdown renderer ──────────────────────────────────────
 function renderMarkdown(text) {
   let html = escapeHtml(text);
-  // Bold
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  // Inline code
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-  // Line breaks → paragraphs
   html = html.split(/\n{2,}/).map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
-  // Simple list detection
   html = html.replace(/<p>([-•]\s.*?(?:<br>[-•]\s.*?)*)<\/p>/g, (match, list) => {
     const items = list.split('<br>').map(i => `<li>${i.replace(/^[-•]\s*/, '')}</li>`).join('');
     return `<ul>${items}</ul>`;
