@@ -12,8 +12,8 @@ param AGENT_APP_HR string
 param AGENT_MODEL_HR string
 param AGENT_APP_IT string
 param AGENT_MODEL_IT string
-param AGENT_APP_FINANCE string
-param AGENT_MODEL_FINANCE string
+param AGENT_APP_COMPLIANCE string
+param AGENT_MODEL_COMPLIANCE string
 
 @secure()
 param AZURE_CLIENT_ID string
@@ -110,8 +110,8 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             { name: 'AGENT_MODEL_HR', value: AGENT_MODEL_HR }
             { name: 'AGENT_APP_IT', value: AGENT_APP_IT }
             { name: 'AGENT_MODEL_IT', value: AGENT_MODEL_IT }
-            { name: 'AGENT_APP_FINANCE', value: AGENT_APP_FINANCE }
-            { name: 'AGENT_MODEL_FINANCE', value: AGENT_MODEL_FINANCE }
+            { name: 'AGENT_APP_COMPLIANCE', value: AGENT_APP_COMPLIANCE }
+            { name: 'AGENT_MODEL_COMPLIANCE', value: AGENT_MODEL_COMPLIANCE }
             { name: 'AZURE_CLIENT_ID', value: AZURE_CLIENT_ID }
             { name: 'AZURE_TENANT_ID', value: AZURE_TENANT_ID }
             { name: 'AZURE_CLIENT_SECRET', secretRef: 'azure-client-secret' }

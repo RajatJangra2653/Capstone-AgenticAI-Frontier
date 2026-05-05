@@ -32,11 +32,11 @@
     "AGENT_MODEL_IT": {
       "value": "${AGENT_MODEL_IT}"
     },
-    "AGENT_APP_FINANCE": {
-      "value": "${AGENT_APP_FINANCE}"
+    "AGENT_APP_COMPLIANCE": {
+      "value": "${AGENT_APP_COMPLIANCE}"
     },
-    "AGENT_MODEL_FINANCE": {
-      "value": "${AGENT_MODEL_FINANCE}"
+    "AGENT_MODEL_COMPLIANCE": {
+      "value": "${AGENT_MODEL_COMPLIANCE}"
     },
     "AZURE_CLIENT_ID": {
       "value": "${AZURE_CLIENT_ID}"

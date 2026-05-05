@@ -57,8 +57,8 @@ function wireEvents() {
     // Update the input placeholder
     if (agentSelector.value === 'ITSupport-Agent') {
       chatInput.placeholder = 'Ask the IT Support Agent a question…';
-    } else if (agentSelector.value === 'Insight-Agent') {
-      chatInput.placeholder = 'Ask the Insight Agent a question…';
+    } else if (agentSelector.value === 'Compliance-Agent') {
+      chatInput.placeholder = 'Ask the Compliance Agent a question…';
     } else if (agentSelector.value === 'HR-Agent') {
       chatInput.placeholder = 'Ask the HR Agent a question…';
     } else {
@@ -238,9 +238,9 @@ function clearChat() {
   if (agentSelector && agentSelector.value === 'ITSupport-Agent') {
     assistantName = 'IT Support Agent';
     assistantDesc = 'IT issues, software requests, hardware troubleshooting, and network access';
-  } else if (agentSelector && agentSelector.value === 'Insight-Agent') {
-    assistantName = 'Insight Agent';
-    assistantDesc = 'data analytics, company insights, reports, and performance metrics';
+  } else if (agentSelector && agentSelector.value === 'Compliance-Agent') {
+    assistantName = 'Compliance Agent';
+    assistantDesc = 'company compliance, security audits, regulations, and risk management';
   } else if (agentSelector && agentSelector.value === 'HR-Agent') {
     assistantName = 'HR Assistant';
     assistantDesc = 'company HR policies, leave rules, health plans, onboarding, and more';

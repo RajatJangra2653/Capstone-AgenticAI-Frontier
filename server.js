@@ -69,8 +69,8 @@ app.post('/api/chat', async (req, res) => {
         resolvedAgentId = 'HR-Agent';
       } else if (latestMessage.match(/\b(password|laptop|vpn|network|software|hardware|login|access|wifi|computer|monitor|mouse|keyboard|printer|email)\b/)) {
         resolvedAgentId = 'ITSupport-Agent';
-      } else if (latestMessage.match(/\b(budget|finance|expense|invoice|cost|revenue|insight|tax|accounting|payroll|spend)\b/)) {
-        resolvedAgentId = 'Insight-Agent';
+      } else if (latestMessage.match(/\b(compliance|audit|security|gdpr|regulation|legal|risk|privacy|governance)\b/)) {
+        resolvedAgentId = 'Compliance-Agent';
       }
     }
 
@@ -79,9 +79,9 @@ app.post('/api/chat', async (req, res) => {
         targetAppName = process.env.AGENT_APP_IT || 'ITSupport-Agent';
         targetModel = process.env.AGENT_MODEL_IT || 'gpt-4.1';
         break;
-      case 'Insight-Agent':
-        targetAppName = process.env.AGENT_APP_FINANCE || 'Insight-Agent';
-        targetModel = process.env.AGENT_MODEL_FINANCE || 'gpt-4.1';
+      case 'Compliance-Agent':
+        targetAppName = process.env.AGENT_APP_COMPLIANCE || 'Compliance-Agent';
+        targetModel = process.env.AGENT_MODEL_COMPLIANCE || 'gpt-4.1';
         break;
       case 'HR-Agent':
         targetAppName = process.env.AGENT_APP_HR || 'HR-Agent';
@@ -183,5 +183,5 @@ app.listen(PORT, () => {
   console.log(`   Orchestrator App:  ${process.env.AGENT_APP_ORCHESTRATOR || '⚠  NOT SET'}`);
   console.log(`   HR Agent App:      ${process.env.AGENT_APP_HR || '⚠  NOT SET'}`);
   console.log(`   IT Agent App:      ${process.env.AGENT_APP_IT || '⚠  NOT SET'}`);
-  console.log(`   Insight Agent App: ${process.env.AGENT_APP_FINANCE || '⚠  NOT SET'}\n`);
+  console.log(`   Compliance Agent App: ${process.env.AGENT_APP_COMPLIANCE || '⚠  NOT SET'}\n`);
 });
