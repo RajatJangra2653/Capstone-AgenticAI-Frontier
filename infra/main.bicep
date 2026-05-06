@@ -22,7 +22,9 @@ param AZURE_CLIENT_ID string
 param AZURE_CLIENT_SECRET string
 param AZURE_TENANT_ID string
 
-var resourceToken = toLower(uniqueString(resourceGroup().id, environmentName, location))
+var subId = subscription().subscriptionId
+var rgId = resourceGroup().id
+var resourceToken = take(uniqueString(subId, rgId, 'random-seed-v1'), 8)
 var tags = { 'azd-env-name': environmentName }
 
 module resources 'resources.bicep' = {
