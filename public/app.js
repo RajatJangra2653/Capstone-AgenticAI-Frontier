@@ -23,6 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
   checkHealth();
   wireEvents();
   autoGrow(chatInput);
+  if (agentSelector) {
+    agentSelector.dispatchEvent(new Event('change'));
+  }
 });
 
 // ── Health check ──────────────────────────────────────────────────
